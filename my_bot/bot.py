@@ -1,11 +1,26 @@
 import telebot
 from config import TOKEN, YANDEX_API_KEY
 from extensions import BusSchedule, APIException
+from connect_db import DatabaseHandler
 from datetime import datetime
 import pytz
 import requests
 
+
+
 bot = telebot.TeleBot(TOKEN)
+
+# Функция для подключения к базе данных
+db_handler = DatabaseHandler()
+
+def connect_to_db():
+    db_handler.connect()
+    conn = db_handler.conn
+    cursor = db_handler.cursor
+    return conn, cursor
+
+def disconnect_from_db(conn, cursor):
+    db_handler.disconnect()
 
 @bot.message_handler(commands=['start', 'help'])
 def handle_start_help(message):
@@ -60,8 +75,49 @@ def handle_bus_113(message):
     except Exception as e:
         bot.reply_to(message, f"Неизвестная ошибка: {e}")
 
+@bot.message_handler(commands=['bolnica'])
+def handle_bolnica(message):
+    try:
+        # Подключение к базе данных
+        conn, cursor = connect_to_db()
 
+        # Выполнение запроса к базе данных для команды /bolnica
+        cursor.execute("SELECT address, phone, working_hours, description FROM organizations WHERE name='Больница'")
+        result = cursor.fetchone()
+
+        # Формирование ответа
+        response = f"Адрес: {result[0]}\nТелефон: {result[1]}\nВремя работы: {result[2]}\nОписание: {result[3]}"
+
+        # Закрытие соединения
+        disconnect_from_db(conn, cursor)
+
+        # Отправка ответа пользователю
+        bot.reply_to(message, response)
+    except Exception as e:
+        bot.reply_to(message, f"Неизвестная ошибка: {e}")
+
+@bot.message_handler(commands=['bolnica_detskaya'])
+def handle_bolnica_detskaya(message):
+    try:
+        # Подключение к базе данных
+        conn, cursor = connect_to_db()
+
+        # Выполнение запроса к базе данных для команды /bolnica_detskaya
+        cursor.execute("SELECT address, phone, working_hours, description FROM organizations WHERE name='Детская больница'")
+        result = cursor.fetchone()
+
+        # Формирование ответа
+        response = f"Адрес: {result[0]}\nТелефон: {result[1]}\nВремя работы: {result[2]}\nОписание: {result[3]}"
+
+        # Закрытие соединения
+        disconnect_from_db(conn, cursor)
+
+        # Отправка ответа пользователю
+        bot.reply_to(message, response)
+    except Exception as e:
+        bot.reply_to(message, f"Неизвестная ошибка: {e}")
 
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)
+

@@ -1,5 +1,6 @@
 import requests
 
+
 class APIException(Exception):
     pass
 
@@ -24,3 +25,5 @@ class BusSchedule:
             raise APIException("Ошибка при получении данных от API")
 
         return data["segments"]
+
+
