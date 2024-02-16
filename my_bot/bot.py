@@ -6,7 +6,7 @@ from connect_db import DatabaseHandler
 from datetime import datetime
 import pytz
 import requests
-
+from telebot import types
 
 
 bot = telebot.TeleBot(TOKEN)
@@ -135,7 +135,8 @@ def handle_bolnica(message):
         result = cursor.fetchone()
 
         # Формирование ответа
-        response = f"Адрес: {result[0]}\nТелефон: {result[1]}\nВремя работы: {result[2]}\nОписание: {result[3]}"
+        phone = result[1].replace(" ", "")  # Удаление пробелов из номера телефона
+        response = f"Адрес: {result[0]}\nТелефон: {phone}\nВремя работы: {result[2]}\nОписание: {result[3]}"
 
         # Закрытие соединения
         disconnect_from_db(conn, cursor)
