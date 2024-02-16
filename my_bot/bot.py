@@ -1,4 +1,5 @@
 import telebot
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 from config import TOKEN, YANDEX_API_KEY
 from extensions import BusSchedule, APIException
 from connect_db import DatabaseHandler
@@ -22,13 +23,61 @@ def connect_to_db():
 def disconnect_from_db(conn, cursor):
     db_handler.disconnect()
 
+
 @bot.message_handler(commands=['start', 'help'])
 def handle_start_help(message):
-    instructions = "Привет! Я бот для получения расписания автобусов.\n\n" \
-                   "Для получения расписания пригородных автобусов Екатеринбург - Бобровский (ООО 'Авто-Плюс' г.Екатеринбург) используйте команду /bus_plus.\n\n" \
-                    "Для получения расписания маршрута №113 Бобровский-Екатеринбург используйте команду /bus_113."
-    bot.reply_to(message, instructions)
-    
+    instructions = "Привет! Я информационный бот поселка Бобровский!.\n\n" \
+                   "Выберите, что вас интересует:"
+
+    # Создание клавиатуры с кнопками
+    keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    bus_schedule_button = KeyboardButton('/bus_schedule - Расписание автобусов')
+    hospital_button = KeyboardButton('/hospitals - Больницы в Бобровском')
+    keyboard.add(bus_schedule_button, hospital_button)
+
+    bot.reply_to(message, instructions, reply_markup=keyboard)
+
+
+@bot.message_handler(commands=['bus_schedule'])
+def handle_bus_schedule(message):
+    instructions = "Выберите тип расписания автобусов:"
+
+    # Создание клавиатуры с кнопками
+    keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    bus_plus_button = KeyboardButton('/bus_plus - Расписание пригородных автобусов Екатеринбург - Бобровский (ООО "Авто-Плюс" г.Екатеринбург)')
+    bus_113_button = KeyboardButton('/bus_113 - Расписание маршрута №113')
+    back_button = KeyboardButton('/start - Назад')
+    keyboard.add(bus_plus_button, bus_113_button, back_button)
+
+    bot.send_message(message.chat.id, instructions, reply_markup=keyboard)
+
+@bot.message_handler(commands=['hospitals'])
+def handle_hospitals(message):
+    instructions = "Выберите населенный пункт:"
+
+    # Создание клавиатуры с кнопками
+    keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    hospital_bobr = KeyboardButton('/hospitals_bobr - Больницы в Бобровском')
+    hospital_sisert = KeyboardButton('/hospital_sisert - Больницы в Сысерти')
+    back_button = KeyboardButton('/start - Назад')
+    keyboard.add(hospital_bobr, hospital_sisert, back_button)
+
+    bot.send_message(message.chat.id, instructions, reply_markup=keyboard)
+
+
+@bot.message_handler(commands=['hospitals_bobr'])
+def handle_hospitals_bobr(message):
+    instructions = "Выберите больницу:"
+
+    # Создание клавиатуры с кнопками
+    keyboard = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    bolnica = KeyboardButton('/bub - Бобровская участковая больница')
+    bolnica_kid = KeyboardButton('/bolnica_kid - Детская больница')
+    back_button = KeyboardButton('/start - Назад')
+    keyboard.add(bolnica, bolnica_kid, back_button)
+
+    bot.send_message(message.chat.id, instructions, reply_markup=keyboard)
+
 
 @bot.message_handler(commands=['bus_plus'])
 def handle_bus(message):
@@ -75,14 +124,14 @@ def handle_bus_113(message):
     except Exception as e:
         bot.reply_to(message, f"Неизвестная ошибка: {e}")
 
-@bot.message_handler(commands=['bolnica'])
+@bot.message_handler(commands=['bub'])
 def handle_bolnica(message):
     try:
         # Подключение к базе данных
         conn, cursor = connect_to_db()
 
         # Выполнение запроса к базе данных для команды /bolnica
-        cursor.execute("SELECT address, phone, working_hours, description FROM organizations WHERE name='Больница'")
+        cursor.execute("SELECT address, phone, working_hours, description FROM organizations WHERE id='1'")
         result = cursor.fetchone()
 
         # Формирование ответа
@@ -96,7 +145,7 @@ def handle_bolnica(message):
     except Exception as e:
         bot.reply_to(message, f"Неизвестная ошибка: {e}")
 
-@bot.message_handler(commands=['bolnica_detskaya'])
+@bot.message_handler(commands=['bolnica_kid'])
 def handle_bolnica_detskaya(message):
     try:
         # Подключение к базе данных
